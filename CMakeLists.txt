@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 cmake_policy(SET CMP0054 NEW)
 
+##########################
+# IrrlichtBaW fork options
+option(GLI_DISABLE_TESTS "IrrlichtBaW option to avoid GLI's tests" ON)
+option(GLI_DISABLE_INSTALL "IrrlichtBaW option to avoid GLI installing" ON)
+
 project(gli)
 set(GLI_VERSION "0.8.3")
 set(CMAKE_CXX_STANDARD 11)
@@ -18,7 +23,7 @@ add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 add_definitions(-DSOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 include_directories(".")
 
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC") 
 	# To generate .asm files: /FAs
 	add_definitions(/Za)
 endif()
@@ -71,7 +76,9 @@ endmacro(addExternalPackageGTC)
 # Add subdirectory
 
 add_subdirectory(gli)
-add_subdirectory(test)
+if(NOT GLI_DISABLE_TESTS)
+	add_subdirectory(test)
+endif()
 #add_subdirectory(doc)
 
 ################################
@@ -79,7 +86,9 @@ add_subdirectory(test)
 
 
 set(GLI_INSTALL_CONFIGDIR "${CMAKE_INSTALL_LIBDIR}/cmake/gli")
-install(DIRECTORY gli DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+if(NOT GLI_DISABLE_INSTALL)
+	install(DIRECTORY gli DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+endif()
 
 write_basic_package_version_file(
 	"${CMAKE_CURRENT_BINARY_DIR}/gliVersion.cmake"
@@ -103,12 +112,14 @@ configure_package_config_file(
 	NO_CHECK_REQUIRED_COMPONENTS_MACRO
 )
 
+if(NOT GLI_DISABLE_INSTALL)
 install(
 	FILES
 		"${CMAKE_CURRENT_BINARY_DIR}/${GLI_INSTALL_CONFIGDIR}/gliConfig.cmake"
 		"${CMAKE_CURRENT_BINARY_DIR}/gliVersion.cmake"
 	DESTINATION ${GLI_INSTALL_CONFIGDIR}
 )
+endif()
 
 add_library(gli INTERFACE)
 target_include_directories(gli INTERFACE
@@ -116,16 +127,21 @@ target_include_directories(gli INTERFACE
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/external>
 )
+
+if(NOT GLI_DISABLE_INSTALL)
 install(TARGETS gli EXPORT gliTargets)
 
 export(
 	EXPORT gliTargets
 	FILE "${CMAKE_CURRENT_BINARY_DIR}/gliTargets.cmake"
 )
+endif()
 
+if(NOT GLI_DISABLE_INSTALL)
 install(
 	EXPORT gliTargets FILE gliTargets.cmake
 	DESTINATION ${GLI_INSTALL_CONFIGDIR}
 )
 
 export(PACKAGE gli)
+endif()
